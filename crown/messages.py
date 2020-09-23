@@ -30,10 +30,10 @@ else:
 
 # Bad practice, so we have a __all__ at the end; this should be cleaned up
 # later.
-from bitcoin.core import *
-from bitcoin.core.serialize import *
-from bitcoin.net import *
-import bitcoin
+from crown.core import *
+from crown.core.serialize import *
+from crown.net import *
+import crown
 
 MSG_WITNESS_FLAG = 1 << 30
 MSG_TYPE_MASK = 0xffffffff >> 2
@@ -62,7 +62,7 @@ class MsgSerializable(Serializable):
         f = _BytesIO()
         self.msg_ser(f)
         body = f.getvalue()
-        res = bitcoin.params.MESSAGE_START
+        res = crown.params.MESSAGE_START
         res += self.command
         res += b"\x00" * (12 - len(self.command))
         res += struct.pack(b"<I", len(body))
@@ -85,9 +85,9 @@ class MsgSerializable(Serializable):
         recvbuf = ser_read(f, 4 + 12 + 4 + 4)
 
         # check magic
-        if recvbuf[:4] != bitcoin.params.MESSAGE_START:
+        if recvbuf[:4] != crown.params.MESSAGE_START:
             raise ValueError("Invalid message start '%s', expected '%s'" %
-                             (b2x(recvbuf[:4]), b2x(bitcoin.params.MESSAGE_START)))
+                             (b2x(recvbuf[:4]), b2x(crown.params.MESSAGE_START)))
 
         # remaining header fields: command, msg length, checksum
         command = recvbuf[4:4+12].split(b"\x00", 1)[0]
@@ -129,7 +129,7 @@ class msg_version(MsgSerializable):
         self.addrFrom = CAddress(PROTO_VERSION)
         self.nNonce = random.getrandbits(64)
         self.strSubVer = (b'/python-bitcoinlib:' +
-                          bitcoin.__version__.encode('ascii') + b'/')
+                          crown.__version__.encode('ascii') + b'/')
         self.nStartingHeight = -1
         self.fRelay = True
 

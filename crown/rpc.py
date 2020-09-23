@@ -16,8 +16,8 @@ By default this uses the standard library ``json`` module. By monkey patching,
 a different implementation can be used instead, at your own risk:
 
 >>> import simplejson
->>> import bitcoin.rpc
->>> bitcoin.rpc.json = simplejson
+>>> import crown.rpc
+>>> crown.rpc.json = simplejson
 
 (``simplejson`` is the externally maintained version of the same module and
 thus better optimized but perhaps less stable.)
@@ -42,10 +42,10 @@ try:
 except ImportError:
     import urlparse
 
-import bitcoin
-from bitcoin.core import COIN, x, lx, b2lx, CBlock, CBlockHeader, CTransaction, COutPoint, CTxOut
-from bitcoin.core.script import CScript
-from bitcoin.wallet import CBitcoinAddress, CBitcoinSecret
+import crown
+from crown.core import COIN, x, lx, b2lx, CBlock, CBlockHeader, CTransaction, COutPoint, CTxOut
+from crown.core.script import CScript
+from crown.wallet import CBitcoinAddress, CBitcoinSecret
 
 DEFAULT_USER_AGENT = "AuthServiceProxy/0.1"
 
@@ -133,7 +133,7 @@ class BaseProxy(object):
         authpair = None
 
         if service_url is None:
-            # Figure out the path to the bitcoin.conf file
+            # Figure out the path to the crown.conf file
             if btc_conf_file is None:
                 if platform.system() == 'Darwin':
                     btc_conf_file = os.path.expanduser('~/Library/Application Support/Bitcoin/')
@@ -141,12 +141,12 @@ class BaseProxy(object):
                     btc_conf_file = os.path.join(os.environ['APPDATA'], 'Bitcoin')
                 else:
                     btc_conf_file = os.path.expanduser('~/.bitcoin')
-                btc_conf_file = os.path.join(btc_conf_file, 'bitcoin.conf')
+                btc_conf_file = os.path.join(btc_conf_file, 'crown.conf')
 
             # Bitcoin Core accepts empty rpcuser, not specified in btc_conf_file
             conf = {'rpcuser': ""}
 
-            # Extract contents of bitcoin.conf to build service_url
+            # Extract contents of crown.conf to build service_url
             try:
                 with open(btc_conf_file, 'r') as fd:
                     for line in fd.readlines():
@@ -157,12 +157,12 @@ class BaseProxy(object):
                         k, v = line.split('=', 1)
                         conf[k.strip()] = v.strip()
 
-            # Treat a missing bitcoin.conf as though it were empty
+            # Treat a missing crown.conf as though it were empty
             except FileNotFoundError:
                 pass
 
             if service_port is None:
-                service_port = bitcoin.params.RPC_PORT
+                service_port = crown.params.RPC_PORT
             conf['rpcport'] = int(conf.get('rpcport', service_port))
             conf['rpchost'] = conf.get('rpcconnect', 'localhost')
 
@@ -170,8 +170,8 @@ class BaseProxy(object):
                 ('http', conf['rpchost'], conf['rpcport']))
 
             cookie_dir = conf.get('datadir', os.path.dirname(btc_conf_file))
-            if bitcoin.params.NAME != "mainnet":
-                cookie_dir = os.path.join(cookie_dir, bitcoin.params.NAME)
+            if crown.params.NAME != "mainnet":
+                cookie_dir = os.path.join(cookie_dir, crown.params.NAME)
             cookie_file = os.path.join(cookie_dir, ".cookie")
             try:
                 with open(cookie_file, 'r') as fd:
@@ -314,8 +314,8 @@ class RawProxy(BaseProxy):
         # Create a callable to do the actual call
         f = lambda *args: self._call(name, *args)
 
-        # Make debuggers show <function bitcoin.rpc.name> rather than <function
-        # bitcoin.rpc.<lambda>>
+        # Make debuggers show <function crown.rpc.name> rather than <function
+        # crown.rpc.<lambda>>
         f.__name__ = name
         return f
 
@@ -323,7 +323,7 @@ class RawProxy(BaseProxy):
 class Proxy(BaseProxy):
     """Proxy to a bitcoin RPC service
 
-    Unlike ``RawProxy``, data is passed as ``bitcoin.core`` objects or packed
+    Unlike ``RawProxy``, data is passed as ``crown.core`` objects or packed
     bytes, rather than JSON or hex strings. Not all methods are implemented
     yet; you can use ``call`` to access missing ones in a forward-compatible
     way. Assumes Bitcoin Core version >= v0.16.0; older versions mostly work,
@@ -340,7 +340,7 @@ class Proxy(BaseProxy):
 
         If ``service_url`` is not specified, the username and password are read
         out of the file ``btc_conf_file``. If ``btc_conf_file`` is not
-        specified, ``~/.bitcoin/bitcoin.conf`` or equivalent is used by
+        specified, ``~/.bitcoin/crown.conf`` or equivalent is used by
         default.  The default port is set according to the chain parameters in
         use: mainnet, testnet, or regtest.
 
@@ -735,7 +735,7 @@ class Proxy(BaseProxy):
         """Submit a new block to the network.
 
         params is optional and is currently ignored by bitcoind. See
-        https://en.bitcoin.it/wiki/BIP_0022 for full specification.
+        https://en.crown.it/wiki/BIP_0022 for full specification.
         """
         hexblock = hexlify(block.serialize())
         if params is not None:

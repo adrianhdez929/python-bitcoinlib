@@ -1,12 +1,13 @@
 # Copyright (C) 2011 Sam Rushing
 # Copyright (C) 2012-2015 The python-bitcoinlib developers
+# Copyright (C) 2020 The python-crownlib developers
 #
-# This file is part of python-bitcoinlib.
+# This file is part of python-crownlib.
 #
 # It is subject to the license terms in the LICENSE file found in the top-level
 # directory of this distribution.
 #
-# No part of python-bitcoinlib, including this file, may be copied, modified,
+# No part of python-crownlib, including this file, may be copied, modified,
 # propagated, or distributed except according to the terms contained in the
 # LICENSE file.
 
@@ -20,8 +21,8 @@ import ctypes.util
 import hashlib
 import sys
 from os import urandom
-import bitcoin
-import bitcoin.signature
+import crown
+import crown.signature
 
 _bchr = chr
 _bord = ord
@@ -29,7 +30,7 @@ if sys.version > '3':
     _bchr = lambda x: bytes([x])
     _bord = lambda x: x
 
-import bitcoin.core.script
+import crown.core.script
 
 _ssl = ctypes.cdll.LoadLibrary(
     ctypes.util.find_library('ssl.35') or ctypes.util.find_library('ssl') or 'libeay32'
@@ -349,7 +350,7 @@ class CECKey:
         mb_sig = ctypes.create_string_buffer(sig_size0.value)
         result = _ssl.ECDSA_sign(0, hash, len(hash), mb_sig, ctypes.byref(sig_size0), self.k)
         assert 1 == result
-        if bitcoin.core.script.IsLowDERSignature(mb_sig.raw[:sig_size0.value]):
+        if crown.core.script.IsLowDERSignature(mb_sig.raw[:sig_size0.value]):
             return mb_sig.raw[:sig_size0.value]
         else:
             return self.signature_to_low_s(mb_sig.raw[:sig_size0.value])
@@ -366,12 +367,12 @@ class CECKey:
         result = _ssl.ECDSA_sign(0, hash, len(hash), mb_sig, ctypes.byref(sig_size0), self.k)
         assert 1 == result
 
-        if bitcoin.core.script.IsLowDERSignature(mb_sig.raw[:sig_size0.value]):
+        if crown.core.script.IsLowDERSignature(mb_sig.raw[:sig_size0.value]):
             sig = mb_sig.raw[:sig_size0.value]
         else:
             sig = self.signature_to_low_s(mb_sig.raw[:sig_size0.value])
 
-        sig = bitcoin.signature.DERSignature.deserialize(sig)
+        sig = crown.signature.DERSignature.deserialize(sig)
 
         r_val = sig.r
         s_val = sig.s

@@ -1,44 +1,41 @@
 # python-crownlib
 
-# Forked from python-bitcoinlib
-This Python3 library provides an easy interface to the bitcoin data
+This Python3 library provides an easy interface to the Crown data
 structures and protocol. The approach is low-level and "ground up", with a
-focus on providing tools to manipulate the internals of how Bitcoin works.
-
-"The Swiss Army Knife of the Bitcoin protocol." - Wladimir J. van der Laan
+focus on providing tools to manipulate the internals of how Crown works.
 
 
 ## Requirements
 
     sudo apt-get install libssl-dev
 
-The RPC interface, `bitcoin.rpc`, is designed to work with Bitcoin Core v0.16.0.
+The RPC interface, `crown.rpc`, is designed to work with Crown Core v0.16.0.
 Older versions may work but there do exist some incompatibilities.
 
 
 ## Structure
 
-Everything consensus critical is found in the modules under bitcoin.core. This
+Everything consensus critical is found in the modules under crown.core. This
 rule is followed pretty strictly, for instance chain parameters are split into
 consensus critical and non-consensus-critical.
 
-    bitcoin.core            - Basic core definitions, datastructures, and
+    crown.core            - Basic core definitions, datastructures, and
                               (context-independent) validation
-    bitcoin.core.key        - ECC pubkeys
-    bitcoin.core.script     - Scripts and opcodes
-    bitcoin.core.scripteval - Script evaluation/verification
-    bitcoin.core.serialize  - Serialization
+    crown.core.key        - ECC pubkeys
+    crown.core.script     - Scripts and opcodes
+    crown.core.scripteval - Script evaluation/verification
+    crown.core.serialize  - Serialization
 
-In the future the bitcoin.core may use the Satoshi sourcecode directly as a
+In the future the crown.core may use the Satoshi sourcecode directly as a
 library. Non-consensus critical modules include the following:
 
-    bitcoin          - Chain selection
-    bitcoin.base58   - Base58 encoding
-    bitcoin.bloom    - Bloom filters (incomplete)
-    bitcoin.net      - Network communication (in flux)
-    bitcoin.messages - Network messages (in flux)
-    bitcoin.rpc      - Bitcoin Core RPC interface support
-    bitcoin.wallet   - Wallet-related code, currently Bitcoin address and
+    crown          - Chain selection
+    crown.base58   - Base58 encoding
+    crown.bloom    - Bloom filters (incomplete)
+    crown.net      - Network communication (in flux)
+    crown.messages - Network messages (in flux)
+    crown.rpc      - Bitcoin Core RPC interface support
+    crown.wallet   - Wallet-related code, currently Bitcoin address and
                        private key support
 
 Effort has been made to follow the Satoshi source relatively closely, for
@@ -49,17 +46,17 @@ CBlockHeader, nValue etc. Otherwise Python naming conventions are followed.
 
 ## Mutable vs. Immutable objects
 
-Like the Bitcoin Core codebase CTransaction is immutable and
-CMutableTransaction is mutable; unlike the Bitcoin Core codebase this
+Like the Crown Core codebase CTransaction is immutable and
+CMutableTransaction is mutable; unlike the Crown Core codebase this
 distinction also applies to COutPoint, CTxIn, CTxOut, and CBlock.
 
 
 ## Endianness Gotchas
 
-Rather confusingly Bitcoin Core shows transaction and block hashes as
+Rather confusingly Crown Core shows transaction and block hashes as
 little-endian hex rather than the big-endian the rest of the world uses for
-SHA256. python-bitcoinlib provides the convenience functions x() and lx() in
-bitcoin.core to convert from big-endian and little-endian hex to raw bytes to
+SHA256. python-crownlib provides the convenience functions x() and lx() in
+crown.core to convert from big-endian and little-endian hex to raw bytes to
 accomodate this. In addition see b2x() and b2lx() for conversion from bytes to
 big/little-endian hex.
 
@@ -84,8 +81,8 @@ spending a pay-to-script-hash transaction output:
 
 Do the following:
 
-    import bitcoin
-    bitcoin.SelectParams(NAME)
+    import crown
+    crown.SelectParams(NAME)
 
 Where NAME is one of 'testnet', 'mainnet', or 'regtest'. The chain currently
 selected is a global variable that changes behavior everywhere, just like in
@@ -94,7 +91,7 @@ the Satoshi codebase.
 
 ## Unit tests
 
-Under bitcoin/tests using test data from Bitcoin Core. To run them:
+Under crown/tests using test data from Crown Core. To run them:
 
     python3 -m unittest discover
 
