@@ -11,14 +11,11 @@
 # LICENSE file.
 
 """Bitcoin Core RPC support
-
 By default this uses the standard library ``json`` module. By monkey patching,
 a different implementation can be used instead, at your own risk:
-
 >>> import simplejson
 >>> import crown.rpc
 >>> crown.rpc.json = simplejson
-
 (``simplejson`` is the externally maintained version of the same module and
 thus better optimized but perhaps less stable.)
 """
@@ -61,7 +58,6 @@ if sys.version > '3':
 
 class JSONRPCError(Exception):
     """JSON-RPC protocol error base class
-
     Subclasses of this class also exist for specific types of errors; the set
     of all subclasses is by no means complete.
     """
@@ -194,7 +190,7 @@ class BaseProxy(object):
             raise ValueError('Unsupported URL scheme %r' % self.__url.scheme)
 
         if self.__url.port is None:
-            port = httplib.HTTP_PORT
+            port = service_port
         else:
             port = self.__url.port
         self.__id_count = 0
@@ -286,7 +282,6 @@ class BaseProxy(object):
 
 class RawProxy(BaseProxy):
     """Low-level proxy to a bitcoin JSON-RPC service
-
     Unlike ``Proxy``, no conversion is done besides parsing JSON. As far as
     Python is concerned, you can call any method; ``JSONRPCError`` will be
     raised if the server does not recognize it.
@@ -322,7 +317,6 @@ class RawProxy(BaseProxy):
 
 class Proxy(BaseProxy):
     """Proxy to a bitcoin RPC service
-
     Unlike ``RawProxy``, data is passed as ``crown.core`` objects or packed
     bytes, rather than JSON or hex strings. Not all methods are implemented
     yet; you can use ``call`` to access missing ones in a forward-compatible
@@ -337,16 +331,13 @@ class Proxy(BaseProxy):
                  timeout=DEFAULT_HTTP_TIMEOUT,
                  **kwargs):
         """Create a proxy object
-
         If ``service_url`` is not specified, the username and password are read
         out of the file ``btc_conf_file``. If ``btc_conf_file`` is not
         specified, ``~/.bitcoin/crown.conf`` or equivalent is used by
         default.  The default port is set according to the chain parameters in
         use: mainnet, testnet, or regtest.
-
         Usually no arguments to ``Proxy()`` are needed; the local bitcoind will
         be used.
-
         ``timeout`` - timeout in seconds before the HTTP interface times out
         """
 
@@ -369,11 +360,8 @@ class Proxy(BaseProxy):
 
     def fundrawtransaction(self, tx, include_watching=False):
         """Add inputs to a transaction until it has enough in value to meet its out value.
-
         include_watching - Also select inputs which are watch only
-
         Returns dict:
-
         {'tx':        Resulting tx,
          'fee':       Fee the resulting transaction pays,
          'changepos': Position of added change output, or -1,
@@ -394,9 +382,7 @@ class Proxy(BaseProxy):
         DEPRECATED (will be removed in bitcoin-core v0.19)
         
         Mine blocks immediately (before the RPC call returns)
-
         numblocks - How many blocks are generated immediately.
-
         Returns iterable of block hashes generated.
         """
         r = self._call('generate', numblocks)
@@ -406,10 +392,8 @@ class Proxy(BaseProxy):
         """Mine blocks immediately (before the RPC call returns) and
         allocate block reward to passed address. Replaces deprecated 
         "generate(self,numblocks)" method.
-
         numblocks - How many blocks are generated immediately.
         addr     - Address to receive block reward (CBitcoinAddress instance)
-
         Returns iterable of block hashes generated.
         """
         r = self._call('generatetoaddress', numblocks, str(addr))
@@ -423,13 +407,10 @@ class Proxy(BaseProxy):
 
     def getbalance(self, account='*', minconf=1, include_watchonly=False):
         """Get the balance
-
         account - The selected account. Defaults to "*" for entire wallet. It
         may be the default account using "".
-
         minconf - Only include transactions confirmed at least this many times.
         (default=1)
-
         include_watchonly - Also include balance in watch-only addresses (see 'importaddress')
         (default=False)
         """
@@ -442,11 +423,9 @@ class Proxy(BaseProxy):
 
     def getblockheader(self, block_hash, verbose=False):
         """Get block header <block_hash>
-
         verbose - If true a dict is returned with the values returned by
                   getblockheader that are not in the block header itself
                   (height, nextblockhash, etc.)
-
         Raises IndexError if block_hash is not valid.
         """
         try:
@@ -475,7 +454,6 @@ class Proxy(BaseProxy):
 
     def getblock(self, block_hash):
         """Get block <block_hash>
-
         Raises IndexError if block_hash is not valid.
         """
         try:
@@ -499,7 +477,6 @@ class Proxy(BaseProxy):
 
     def getblockhash(self, height):
         """Return hash of block in best-block-chain at height.
-
         Raises IndexError if height is not valid.
         """
         try:
@@ -523,7 +500,6 @@ class Proxy(BaseProxy):
 
     def getnewaddress(self, account=None):
         """Return a new Bitcoin address for receiving payments.
-
         If account is not None, it is added to the address book so payments
         received with the address will be credited to account.
         """
@@ -537,7 +513,6 @@ class Proxy(BaseProxy):
 
     def getrawchangeaddress(self):
         """Returns a new Bitcoin address, for receiving change.
-
         This is for use with raw transactions, NOT normal use.
         """
         r = self._call('getrawchangeaddress')
@@ -555,12 +530,9 @@ class Proxy(BaseProxy):
 
     def getrawtransaction(self, txid, verbose=False):
         """Return transaction with hash txid
-
         Raises IndexError if transaction not found.
-
         verbose - If true a dict is returned instead with additional
         information on the transaction.
-
         Note that if all txouts are spent and the transaction index is not
         enabled the transaction may not be available.
         """
@@ -585,15 +557,11 @@ class Proxy(BaseProxy):
 
     def getreceivedbyaddress(self, addr, minconf=1):
         """Return total amount received by given a (wallet) address
-
         Get the amount received by <address> in transactions with at least
         [minconf] confirmations.
-
         Works only for addresses in the local wallet; other addresses will
         always show zero.
-
         addr    - The address. (CBitcoinAddress instance)
-
         minconf - Only include transactions confirmed at least this many times.
         (default=1)
         """
@@ -602,9 +570,7 @@ class Proxy(BaseProxy):
 
     def gettransaction(self, txid):
         """Get detailed information about in-wallet transaction txid
-
         Raises IndexError if transaction not found in the wallet.
-
         FIXME: Returned data types are not yet converted.
         """
         try:
@@ -616,9 +582,7 @@ class Proxy(BaseProxy):
 
     def gettxout(self, outpoint, includemempool=True):
         """Return details about an unspent transaction output.
-
         Raises IndexError if outpoint is not found or was spent.
-
         includemempool - Include mempool txouts
         """
         r = self._call('gettxout', b2lx(outpoint.hash), outpoint.n, includemempool)
@@ -642,7 +606,6 @@ class Proxy(BaseProxy):
 
     def listunspent(self, minconf=0, maxconf=9999999, addrs=None):
         """Return unspent transaction outputs in wallet
-
         Outputs will have between minconf and maxconf (inclusive)
         confirmations, optionally filtered to only include txouts paid to
         addresses in addrs.
@@ -680,7 +643,6 @@ class Proxy(BaseProxy):
 
     def sendrawtransaction(self, tx, allowhighfees=False):
         """Submit transaction to local node and network.
-
         allowhighfees - Allow even if fees are unreasonably high.
         """
         hextx = hexlify(tx.serialize())
@@ -693,7 +655,6 @@ class Proxy(BaseProxy):
 
     def sendmany(self, fromaccount, payments, minconf=1, comment='', subtractfeefromamount=[]):
         """Send amount to given addresses.
-
         payments - dict with {address: amount}
         """
         json_payments = {str(addr):float(amount)/COIN
@@ -710,7 +671,6 @@ class Proxy(BaseProxy):
 
     def signrawtransaction(self, tx, *args):
         """Sign inputs for transaction
-
         FIXME: implement options
         """
         hextx = hexlify(tx.serialize())
@@ -722,7 +682,6 @@ class Proxy(BaseProxy):
     def signrawtransactionwithwallet(self, tx, *args):
         """Sign inputs for transaction
             bicoincore >= 0.17.x
-
         FIXME: implement options
         """
         hextx = hexlify(tx.serialize())
@@ -733,7 +692,6 @@ class Proxy(BaseProxy):
 
     def submitblock(self, block, params=None):
         """Submit a new block to the network.
-
         params is optional and is currently ignored by bitcoind. See
         https://en.crown.it/wiki/BIP_0022 for full specification.
         """
@@ -754,9 +712,7 @@ class Proxy(BaseProxy):
 
     def unlockwallet(self, password, timeout=60):
         """Stores the wallet decryption key in memory for 'timeout' seconds.
-
         password - The wallet passphrase.
-
         timeout - The time to keep the decryption key in seconds.
         (default=60)
         """
