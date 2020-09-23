@@ -1,5 +1,6 @@
-# python-bitcoinlib
+# python-crownlib
 
+Forked from # python-bitcoinlib
 This Python3 library provides an easy interface to the bitcoin data
 structures and protocol. The approach is low-level and "ground up", with a
 focus on providing tools to manipulate the internals of how Bitcoin works.
