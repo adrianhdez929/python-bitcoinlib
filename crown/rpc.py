@@ -190,7 +190,7 @@ class BaseProxy(object):
             raise ValueError('Unsupported URL scheme %r' % self.__url.scheme)
 
         if self.__url.port is None:
-            port = service_port
+            port = crown.params.RPC_PORT
         else:
             port = self.__url.port
         self.__id_count = 0
