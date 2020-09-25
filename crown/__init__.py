@@ -25,7 +25,7 @@ class MainParams(crown.core.CoreMainParams):
     RPC_PORT = 9341
     DNS_SEEDS = (('crowncoin.org', 'dnseed1.crowncoin.org'))
     BASE58_PREFIXES = {'PUBKEY_ADDR':(0x01, 0x75, 0x07),
-                       'SCRIPT_ADDR':(0x01, 0x75, 0xF1),
+                       'SCRIPT_ADDR':(0x01, 0x74, 0xF1),
                        'SECRET_KEY' :128}
     BECH32_HRP = 'bc'
 
