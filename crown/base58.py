@@ -1,5 +1,6 @@
 # Copyright (C) 2011 Sam Rushing
 # Copyright (C) 2013-2014 The python-bitcoinlib developers
+# Copyright (C) 2020 The python-crownlib developers
 #
 # This file is part of python-bitcoinlib.
 #
@@ -103,12 +104,21 @@ class CBase58Data(bytes):
     """
     def __new__(cls, s):
         k = decode(s)
-        verbyte, data, check0 = k[0:1], k[1:-4], k[-4:]
-        check1 = crown.core.Hash(verbyte + data)[:4]
+        if k[0] == crown.params.BASE58_PREFIXES['SECRET_KEY']:
+            verbytes, data, check0 = k[0:1], k[1:-4], k[-4:]
+        else:
+            verbytes, data, check0 = k[0:3], k[3:-4], k[-4:]
+        check1 = crown.core.Hash(verbytes + data)[:4]
         if check0 != check1:
             raise Base58ChecksumError('Checksum mismatch: expected %r, calculated %r' % (check0, check1))
+        if len(verbytes) > 1:
+            ver = list()
+            for prefix in verbytes:
+                ver.append(_bord(prefix))
+            return cls.from_bytes(data, tuple(ver))
 
-        return cls.from_bytes(data, _bord(verbyte[0]))
+        return cls.from_bytes(data, _bord(verbytes[0]))
+
 
     def __init__(self, s):
         """Initialize from base58-encoded string
@@ -121,8 +131,13 @@ class CBase58Data(bytes):
     @classmethod
     def from_bytes(cls, data, nVersion):
         """Instantiate from data and nVersion"""
-        if not (0 <= nVersion <= 255):
-            raise ValueError('nVersion must be in range 0 to 255 inclusive; got %d' % nVersion)
+        if type(nVersion) is not int:
+            for prefix in nVersion: 
+                if not (0 <= prefix <= 255):
+                    raise ValueError('nVersion must be in range 0 to 255 inclusive; got %d' % nVersion)
+        else:
+            if not (0 <= nVersion <= 255):
+                raise ValueError('nVersion must be in range 0 to 255 inclusive; got %d' % nVersion)
         self = bytes.__new__(cls, data)
         self.nVersion = nVersion
 
@@ -138,7 +153,10 @@ class CBase58Data(bytes):
 
     def __str__(self):
         """Convert to string"""
-        vs = _bchr(self.nVersion) + self
+        pre = bytearray()
+        for prefix in self.nVersion:
+            pre += _bchr(prefix)
+        vs = pre + self
         check = crown.core.Hash(vs)[0:4]
         return encode(vs + check)
 

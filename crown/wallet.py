@@ -38,11 +38,6 @@ class CBitcoinAddress(object):
 
     def __new__(cls, s):
         try:
-            return CBech32BitcoinAddress(s)
-        except crown.bech32.Bech32Error:
-            pass
-
-        try:
             return CBase58BitcoinAddress(s)
         except crown.base58.Base58Error:
             pass
@@ -53,11 +48,6 @@ class CBitcoinAddress(object):
     def from_scriptPubKey(cls, scriptPubKey):
         """Convert a scriptPubKey to a subclass of CBitcoinAddress"""
         try:
-            return CBech32BitcoinAddress.from_scriptPubKey(scriptPubKey)
-        except CBitcoinAddressError:
-            pass
-
-        try:
             return CBase58BitcoinAddress.from_scriptPubKey(scriptPubKey)
         except CBitcoinAddressError:
             pass
@@ -67,48 +57,6 @@ class CBitcoinAddress(object):
 
 class CBitcoinAddressError(Exception):
     """Raised when an invalid Bitcoin address is encountered"""
-
-
-class CBech32BitcoinAddress(crown.bech32.CBech32Data, CBitcoinAddress):
-    """A Bech32-encoded Bitcoin address"""
-
-    @classmethod
-    def from_bytes(cls, witver, witprog):
-
-        assert witver == 0
-        self = super(CBech32BitcoinAddress, cls).from_bytes(
-            witver,
-            _tobytes(witprog)
-        )
-
-        if len(self) == 32:
-            self.__class__ = P2WSHBitcoinAddress
-        elif len(self) == 20:
-            self.__class__ = P2WPKHBitcoinAddress
-        else:
-            raise CBitcoinAddressError('witness program does not match any known segwit address format')
-
-        return self
-
-    @classmethod
-    def from_scriptPubKey(cls, scriptPubKey):
-        """Convert a scriptPubKey to a CBech32BitcoinAddress
-
-        Returns a CBech32BitcoinAddress subclass, either P2WSHBitcoinAddress or
-        P2WPKHBitcoinAddress. If the scriptPubKey is not recognized
-        CBitcoinAddressError will be raised.
-        """
-        try:
-            return P2WSHBitcoinAddress.from_scriptPubKey(scriptPubKey)
-        except CBitcoinAddressError:
-            pass
-
-        try:
-            return P2WPKHBitcoinAddress.from_scriptPubKey(scriptPubKey)
-        except CBitcoinAddressError:
-            pass
-
-        raise CBitcoinAddressError('scriptPubKey not a valid bech32-encoded address')
 
 
 class CBase58BitcoinAddress(crown.base58.CBase58Data, CBitcoinAddress):
@@ -288,51 +236,6 @@ class P2PKHBitcoinAddress(CBase58BitcoinAddress):
         return self.to_scriptPubKey()
 
 
-class P2WSHBitcoinAddress(CBech32BitcoinAddress):
-
-    @classmethod
-    def from_scriptPubKey(cls, scriptPubKey):
-        """Convert a scriptPubKey to a P2WSH address
-
-        Raises CBitcoinAddressError if the scriptPubKey isn't of the correct
-        form.
-        """
-        if scriptPubKey.is_witness_v0_scripthash():
-            return cls.from_bytes(0, scriptPubKey[2:34])
-        else:
-            raise CBitcoinAddressError('not a P2WSH scriptPubKey')
-
-    def to_scriptPubKey(self):
-        """Convert an address to a scriptPubKey"""
-        assert self.witver == 0
-        return script.CScript([0, self])
-
-    def to_redeemScript(self):
-        raise NotImplementedError("Not enough data in p2wsh address to reconstruct redeem script")
-
-
-class P2WPKHBitcoinAddress(CBech32BitcoinAddress):
-
-    @classmethod
-    def from_scriptPubKey(cls, scriptPubKey):
-        """Convert a scriptPubKey to a P2WPKH address
-
-        Raises CBitcoinAddressError if the scriptPubKey isn't of the correct
-        form.
-        """
-        if scriptPubKey.is_witness_v0_keyhash():
-            return cls.from_bytes(0, scriptPubKey[2:22])
-        else:
-            raise CBitcoinAddressError('not a P2WPKH scriptPubKey')
-
-    def to_scriptPubKey(self):
-        """Convert an address to a scriptPubKey"""
-        assert self.witver == 0
-        return script.CScript([0, self])
-
-    def to_redeemScript(self):
-        return script.CScript([script.OP_DUP, script.OP_HASH160, self, script.OP_EQUALVERIFY, script.OP_CHECKSIG])
-
 class CKey(object):
     """An encapsulated private key
 
@@ -386,11 +289,8 @@ __all__ = (
         'CBitcoinAddressError',
         'CBitcoinAddress',
         'CBase58BitcoinAddress',
-        'CBech32BitcoinAddress',
         'P2SHBitcoinAddress',
         'P2PKHBitcoinAddress',
-        'P2WSHBitcoinAddress',
-        'P2WPKHBitcoinAddress',
         'CKey',
         'CBitcoinSecretError',
         'CBitcoinSecret',
